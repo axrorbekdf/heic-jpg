@@ -1,17 +1,23 @@
 import streamlit as st
 import os 
 from PIL import Image
-from pillow_heif import register_heif_opener
+from pillow_heif import register_heif_opener 
 
 from flask import Flask 
-from flask import Flask, jsonify, request
+from flask import Flask, jsonify, request, send_from_directory, url_for
 
 app = Flask(__name__) 
+app.config['SECRET_KEY'] = 'asdasd46sfasf'
+app.config['UPLOADED_PHOTOS_DEST'] = 'converted_images'
 
 # Pass the required route to the decorator. 
-@app.route("/hello") 
-def hello(): 
-	return "Salo"
+@app.route("/uploads/<filename>")
+def get_file(filename): 
+	# return send_from_directory(app.config['UPLOADED_PHOTOS_DEST'] + filename)
+    return send_from_directory(
+            os.path.join(app.instance_path, ''),
+            filename
+        )
 
 @app.route("/upload-image", methods=["GET", "POST"])
 def upload_image():
@@ -32,7 +38,7 @@ def upload_image():
                     heif_file.save(new_file_path, format='JPEG')
 
             return jsonify({
-                "image": "/converted_images/"+new_file_name,
+                "image": url_for('get_file', filename=new_file_path)
                 })
     return "Qaytadan urinib ko'ring!"
 
